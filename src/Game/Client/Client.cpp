@@ -11,12 +11,14 @@
 
 namespace Luntik::Client {
 Client::Client(sf::IpAddress ip, uint16_t port, Renderer::Window *window)
-    : m_Window(window), m_TerrainManager(&m_GameState.terrain, m_Window),
-      m_SocketClient(ip, port) {}
+    : m_Window(window), m_Ip(ip), m_Port(port),
+      m_TerrainManager(&m_GameState.terrain, m_Window)
+//, m_SocketClient(ip, port)
+{}
 
 Client::~Client() {
   if (isRunning())
-    end();
+    stop();
 }
 
 bool Client::isRunning() { return m_Running; }
@@ -38,20 +40,20 @@ void Client::start() {
   //           m_GameState.terrain.getTerrain()->operator[](chunk.pos) = chunk;
   //         }));
 
-  m_SocketClient.start();
+  // m_SocketClient.start();
 
   // m_SocketClient.send(
   //     Networking::createPacket<Packets::C2S_CHUNK_PACKET>(Utils::Pos{0, 0}));
 }
 
-void Client::end() {
+void Client::stop() {
   if (!isRunning()) {
     SPDLOG_WARN("Client isn't on");
     return;
   }
 
   m_Running = false;
-  m_SocketClient.stop();
+  // m_SocketClient.stop();
 }
 
 void Client::tick(float deltaTime) {
@@ -61,8 +63,8 @@ void Client::tick(float deltaTime) {
   }
 
   m_Window->render(deltaTime);
-  if (m_Window->isClosed()) {
-    end();
+  if (!m_Window->isOpen()) {
+    stop();
     return;
   }
 
@@ -77,6 +79,8 @@ void Client::run() {
     SPDLOG_WARN("Client isn't on");
     return;
   }
+
+  sf::Clock m_Clock;
 
   float deltaTime = 0.f;
   int fps = 0;

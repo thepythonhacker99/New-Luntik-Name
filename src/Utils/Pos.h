@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SFML/Network/Packet.hpp"
+
 #include <cstdint>
 #include <functional>
 #include <ostream>
@@ -34,17 +35,7 @@ template <> struct std::hash<Luntik::Utils::Pos> {
   }
 };
 
-inline std::ostream &operator<<(std::ostream &out,
-                                const Luntik::Utils::Pos &pos) {
-  out << pos.x << " " << pos.y;
-  return out;
-}
+std::ostream &operator<<(std::ostream &out, const Luntik::Utils::Pos &pos);
 
-inline sf::Packet &operator<<(sf::Packet &packet,
-                              const Luntik::Utils::Pos &pos) {
-  return packet << pos.x << pos.y;
-}
-
-inline sf::Packet &operator>>(sf::Packet &packet, Luntik::Utils::Pos &pos) {
-  return packet >> pos.x >> pos.y;
-}
+sf::Packet &operator<<(sf::Packet &packet, const Luntik::Utils::Pos &pos);
+sf::Packet &operator>>(sf::Packet &packet, Luntik::Utils::Pos &pos);

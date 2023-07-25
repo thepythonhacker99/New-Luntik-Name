@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../Utils/TypeName.h"
 #include "SFML/Network/Packet.hpp"
 
 #include <algorithm>

@@ -13,13 +13,17 @@
 #include <iostream>
 
 namespace Luntik::Server {
-Server::Server(sf::IpAddress ip, uint16_t port) : m_SocketServer(ip, port) {}
+Server::Server(sf::IpAddress ip, uint16_t port)
+    : m_Ip(ip), m_Port(port)
+// : m_SocketServer(ip, port)
+{}
+
 Server::~Server() {
   if (isRunning())
-    end();
+    stop();
 }
 
-bool Server::isRunning() { return m_Running; }
+bool Server::isRunning() const { return m_Running; }
 
 void Server::start() {
   if (isRunning()) {
@@ -27,16 +31,16 @@ void Server::start() {
     return;
   }
 
-  m_SocketServer.setClientConnectedCallback([](Networking::ID_t id) {
-    SPDLOG_INFO("Client connected with id: {}", id);
-  });
-
-  m_SocketServer.setClientDisconnectedCallback([this](Networking::ID_t id) {
-    SPDLOG_INFO("Client with id {} disconnected!", id);
-    if (m_SocketServer.clientsCount() == 0) {
-      end();
-    }
-  });
+  // m_SocketServer.setClientConnectedCallback([](Networking::ID_t id) {
+  //   SPDLOG_INFO("Client connected with id: {}", id);
+  // });
+  //
+  // m_SocketServer.setClientDisconnectedCallback([this](Networking::ID_t id) {
+  //   SPDLOG_INFO("Client with id {} disconnected!", id);
+  //   if (m_SocketServer.clientsCount() == 0) {
+  //     end();
+  //   }
+  // });
 
   // m_SocketServer.addReceiveCallback(
   //     Packets::C2S_CHUNK_PACKET,
@@ -50,32 +54,32 @@ void Server::start() {
   //                             GameObjects::Chunk(pos)));
   //         }));
 
-  m_SocketServer.start();
-  if (!m_SocketServer.isListenThreadRunning()) {
-    SPDLOG_INFO("Failed to start SocketServer!");
-    return;
-  }
+  // m_SocketServer.start();
+  // if (!m_SocketServer.isListenThreadRunning()) {
+  //   SPDLOG_INFO("Failed to start SocketServer!");
+  //   return;
+  // }
 
   m_Running = true;
 }
 
-void Server::end() {
+void Server::stop() {
   if (!isRunning()) {
     SPDLOG_WARN("Server isn't on");
     return;
   }
 
-  m_SocketServer.stop();
+  // m_SocketServer.stop();
   m_Running = false;
 }
 
-void Server::tick() {
+void Server::tick(float deltaTime) {
   if (!isRunning()) {
     SPDLOG_WARN("Server isn't on");
     return;
   }
 
-  m_SocketServer.handleCallbacks();
+  // m_SocketServer.handleCallbacks();
 }
 
 void Server::run() {
@@ -89,11 +93,11 @@ void Server::run() {
   int fps = 0;
   float timeForFps = 0.f;
 
-  Utils::Timers::BlockingTimer serverTimer(20);
+  Utils::Timers::BlockingTimer<20> serverTimer;
 
   m_Running = true;
   while (isRunning()) {
-    deltaTime = m_Clock.restart().asSeconds();
+    deltaTime = clock.restart().asSeconds();
 
     timeForFps += deltaTime;
     fps++;
@@ -103,9 +107,9 @@ void Server::run() {
       fps = 0;
     }
 
-    tick();
+    tick(deltaTime);
 
-    serverTimer.tick();
+    serverTimer.sleep();
   }
 
   SPDLOG_INFO("Ended running");
