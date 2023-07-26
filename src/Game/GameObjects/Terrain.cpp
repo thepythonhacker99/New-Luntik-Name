@@ -6,25 +6,26 @@
 #include "SFML/System/Vector2.hpp"
 #include "spdlog/spdlog.h"
 #include <cstdint>
+#include <ctime>
 
 namespace Luntik::GameObjects {
 
-Terrain::Terrain() { m_Noise.SetNoiseType(FastNoiseLite::NoiseType_Cellular); }
+Terrain::Terrain() {
+  m_Noise.SetSeed(time(NULL));
+  m_Noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+}
 
 Chunk *Terrain::generateChunk(Utils::Pos pos) {
   m_Terrain[pos] = Chunk(pos);
   Chunk *chunk = &m_Terrain.at(pos);
 
   for (uint16_t i = 0; i < Settings::CHUNK_SIZE_SQUARED; i++) {
-    constexpr float scale = 1.f;
-    constexpr float scale2 = 1.f;
-    float output = m_Noise.GetNoise(float(pos.x * Settings::CHUNK_SIZE +
-                                          (i % Settings::CHUNK_SIZE)) *
-                                        scale,
-                                    float(pos.y * Settings::CHUNK_SIZE +
-                                          int(i / Settings::CHUNK_SIZE)) *
-                                        scale) *
-                   scale2;
+    constexpr float scale = 10.f;
+    float output = m_Noise.GetNoise(
+        float(pos.x * Settings::CHUNK_SIZE + (i % Settings::CHUNK_SIZE)) *
+            scale,
+        float(pos.y * Settings::CHUNK_SIZE + (i / Settings::CHUNK_SIZE)) *
+            scale);
 
     // SPDLOG_INFO("{}", output);
 

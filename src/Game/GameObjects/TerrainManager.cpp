@@ -15,6 +15,12 @@ TerrainManager::TerrainManager(Terrain *terrainToManage,
     : m_TerrainToManage(terrainToManage), m_Window(window),
       m_SocketClient(socketClient) {}
 
+TerrainManager::~TerrainManager() {
+  m_RenderCache.clear();
+  m_RenderPos.clear();
+  m_RequestedChunks.clear();
+}
+
 Utils::Pos TerrainManager::pixelToChunkPos(sf::Vector2f pixel) {
   return Utils::Pos(std::floor(pixel.x / Settings::CHUNK_SIZE_IN_PIXELS),
                     std::floor(pixel.y / Settings::CHUNK_SIZE_IN_PIXELS));
@@ -40,7 +46,7 @@ void TerrainManager::updateChunkRenderCache(Utils::Pos pos) {
   }
   sf::RenderTexture *texture = &m_RenderCache.at(pos);
 
-  texture->clear(Settings::CLEAR_COLOR);
+  texture->clear(sf::Color::Transparent);
 
   sf::RectangleShape rect;
   rect.setSize(sf::Vector2f{Settings::BLOCK_SIZE, Settings::BLOCK_SIZE});
@@ -67,7 +73,6 @@ void TerrainManager::requestChunksIfNotPresent() {
   for (int x = m_TopLeftChunk.x - 1; x <= m_BottomRightChunk.x + 1; x++) {
     for (int y = m_TopLeftChunk.y - 1; y <= m_BottomRightChunk.y + 1; y++) {
       Utils::Pos pos(x, y);
-
       if (x >= m_TopLeftChunk.x && x <= m_BottomRightChunk.x) {
         if (y >= m_TopLeftChunk.y && y <= m_BottomRightChunk.y) {
           m_RenderPos.push_back(pos);
@@ -77,10 +82,16 @@ void TerrainManager::requestChunksIfNotPresent() {
       if (m_TerrainToManage->getChunk(pos) != nullptr)
         continue;
 
+      if (std::find(m_RequestedChunks.begin(), m_RequestedChunks.end(), pos) !=
+          m_RequestedChunks.end())
+        continue;
+
       // request the chunk
       // SPDLOG_INFO("Requested chunk {} {}", pos.x, pos.y);
       m_SocketClient->send(
           Networking::createPacket<Packets::C2S_CHUNK_PACKET>(pos));
+
+      m_RequestedChunks.push_back(pos);
     }
   }
 }
@@ -107,6 +118,20 @@ void TerrainManager::render(Renderer::Window *window) {
 }
 
 void TerrainManager::tick(float deltaTime) {
+  m_ClearRequestedChunks += deltaTime;
+
+  if (m_ClearRequestedChunks >= 3.f) {
+    m_ClearRequestedChunks -= 3.f;
+    m_RequestedChunks.clear();
+  } else {
+    m_RequestedChunks.erase(
+        std::remove_if(m_RequestedChunks.begin(), m_RequestedChunks.end(),
+                       [this](const Utils::Pos &pos) {
+                         return m_TerrainToManage->getChunk(pos) != nullptr;
+                       }),
+        m_RequestedChunks.end());
+  }
+
   Utils::Pos topLeftChunk =
       pixelToChunkPos(m_Window->getCamera()->getTopLeft());
 

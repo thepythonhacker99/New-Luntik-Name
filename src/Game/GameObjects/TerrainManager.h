@@ -12,6 +12,8 @@ public:
   TerrainManager(Terrain *terrainToManage,
                  Networking::SocketClient *socketClient,
                  Renderer::Window *window);
+  ~TerrainManager();
+
   void onChunkReceive(const Chunk &chunk);
 
   void tick(float deltaTime);
@@ -29,6 +31,10 @@ private:
   Networking::SocketClient *m_SocketClient;
 
   std::vector<Utils::Pos> m_RenderPos;
+
+  std::vector<Utils::Pos> m_RequestedChunks;
+  float m_ClearRequestedChunks = 0.f;
+
   std::unordered_map<Utils::Pos, sf::RenderTexture> m_RenderCache;
 
   Terrain *m_TerrainToManage;
