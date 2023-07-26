@@ -3,6 +3,7 @@
 #include "../../Renderer/Window.h"
 #include "../../Utils/Pos.h"
 #include "../settings.h"
+#include "Noise/FastNoiseLite.h"
 #include "SFML/Network/Packet.hpp"
 
 #include <cstdint>
@@ -50,7 +51,10 @@ public:
   std::unordered_map<Utils::Pos, Chunk> *getTerrain();
   Chunk *getChunk(Utils::Pos pos);
 
+  Chunk *generateChunk(Utils::Pos pos);
+
 private:
   std::unordered_map<Utils::Pos, Chunk> m_Terrain;
+  FastNoiseLite m_Noise;
 };
 } // namespace Luntik::GameObjects

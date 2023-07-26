@@ -1,6 +1,7 @@
 #include "TerrainManager.h"
 
 #include "../Packets.h"
+#include "SFML/Graphics/RenderTexture.hpp"
 #include "SFML/System/Vector2.hpp"
 #include "spdlog/spdlog.h"
 #include <cmath>
@@ -20,7 +21,40 @@ Utils::Pos TerrainManager::pixelToChunkPos(sf::Vector2f pixel) {
 
 void TerrainManager::onChunkReceive(const Chunk &chunk) {
   m_TerrainToManage->getTerrain()->operator[](chunk.pos) = chunk;
+  updateChunkRenderCache(chunk.pos);
 }
+
+void TerrainManager::updateChunkRenderCache(Utils::Pos pos) {
+  Chunk *chunk = m_TerrainToManage->getChunk(pos);
+  if (!chunk)
+    return;
+
+  if (m_RenderCache.find(pos) == m_RenderCache.end()) {
+    if (m_RenderCache[pos].create(sf::Vector2u(
+            Settings::CHUNK_SIZE_IN_PIXELS, Settings::CHUNK_SIZE_IN_PIXELS)) ==
+        false) {
+      SPDLOG_ERROR("Failed to create chunk render cache texture for pos {} {}",
+                   pos.x, pos.y);
+    }
+  }
+  sf::RenderTexture *texture = &m_RenderCache.at(pos);
+
+  texture->clear(Settings::CLEAR_COLOR);
+
+  sf::RectangleShape rect;
+  rect.setSize(sf::Vector2f{Settings::BLOCK_SIZE, Settings::BLOCK_SIZE});
+  rect.setFillColor(sf::Color(30, 30, 15));
+
+  for (const auto &[blockPos, type] : chunk->blocks) {
+    if (type == BlockType::Air)
+      continue;
+
+    rect.setPosition(sf::Vector2f{float(Settings::BLOCK_SIZE * blockPos.x),
+                                  float(Settings::BLOCK_SIZE * blockPos.y)});
+
+    texture->draw(rect);
+  }
+};
 
 void TerrainManager::requestChunksIfNotPresent() {
   // SPDLOG_INFO("Chunks size: {} {}", m_BottomRightChunk.x - m_TopLeftChunk.x,
@@ -56,20 +90,18 @@ void TerrainManager::render(Renderer::Window *window) {
   rect.setFillColor(sf::Color(30, 30, 15));
 
   for (const Utils::Pos pos : m_RenderPos) {
-    Chunk *chunk = m_TerrainToManage->getChunk(pos);
-    if (chunk) {
-      for (const auto &[blockPos, type] : chunk->blocks) {
-        if (type == BlockType::Air)
-          continue;
-        rect.setPosition(
-            sf::Vector2f{float(Settings::CHUNK_SIZE_IN_PIXELS * pos.x +
-                               Settings::BLOCK_SIZE * blockPos.x),
-                         float(Settings::CHUNK_SIZE_IN_PIXELS * pos.y +
-                               Settings::BLOCK_SIZE * blockPos.y)});
+    if (m_TerrainToManage->getChunk(pos) == nullptr)
+      continue;
 
-        window->getInternalWindow()->draw(rect);
-      }
+    if (m_RenderCache.find(pos) == m_RenderCache.end()) {
+      updateChunkRenderCache(pos);
     }
+
+    sf::Sprite sprite(m_RenderCache.at(pos).getTexture());
+    sprite.setPosition(sf::Vector2f(pos.x * Settings::CHUNK_SIZE_IN_PIXELS,
+                                    pos.y * Settings::CHUNK_SIZE_IN_PIXELS));
+
+    m_Window->getInternalWindow()->draw(sprite);
   }
 }
 

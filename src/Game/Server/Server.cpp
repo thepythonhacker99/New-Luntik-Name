@@ -44,11 +44,15 @@ void Server::start() {
       Packets::C2S_CHUNK_PACKET,
       std::function<void(Networking::ID_t, Utils::Pos)>(
           [this](Networking::ID_t senderId, Utils::Pos pos) {
-            SPDLOG_INFO("Received chunk request with pos {} {} from id {}",
-                        pos.x, pos.y, senderId);
+            // SPDLOG_INFO("Received chunk request with pos {} {} from id {}",
+            //             pos.x, pos.y, senderId);
+            //             m_SocketServer.send(
+
+            GameObjects::Chunk *chunk = m_GameState.terrain.generateChunk(pos);
+
             m_SocketServer.send(
-                senderId, Networking::createPacket<Packets::S2C_CHUNK_PACKET>(
-                              GameObjects::Chunk(pos)));
+                senderId,
+                Networking::createPacket<Packets::S2C_CHUNK_PACKET>(*chunk));
           }));
 
   m_SocketServer.start();

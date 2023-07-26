@@ -1,5 +1,6 @@
 #include "Window.h"
 
+#include "../Game/settings.h"
 #include "SFML/System/Vector2.hpp"
 
 #include <cstdint>
@@ -32,7 +33,7 @@ void Window::render(float deltaTime) {
   m_Camera.tick(deltaTime, m_Window->getSize());
   m_Window->setView(m_Camera);
 
-  m_Window->clear(sf::Color(15, 15, 30));
+  m_Window->clear(Settings::CLEAR_COLOR);
 
   sf::Event e;
 
