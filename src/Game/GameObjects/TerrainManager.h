@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Terrain.h"
+
 namespace Luntik::GameObjects {
 class TerrainManager : Utils::NonCopyable {
 public:

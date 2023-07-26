@@ -2,6 +2,7 @@
 
 #include "../Renderer/Window.h"
 #include "Client/Client.h"
+#include "Packets.h"
 #include "Server/Server.h"
 
 #include <chrono>
@@ -13,9 +14,8 @@ namespace Luntik {
 Game::Game() { m_Window = new Renderer::Window("Luntik", 270); }
 
 void Game::run() {
-  // Networking::registerPacket<Packets::C2S_CHUNK_PACKET, Utils::Pos>();
-  // Networking::registerPacket<Packets::S2C_CHUNK_PACKET,
-  // GameObjects::Chunk>();
+  Networking::registerPacket<Packets::C2S_CHUNK_PACKET, Utils::Pos>();
+  Networking::registerPacket<Packets::S2C_CHUNK_PACKET, GameObjects::Chunk>();
 
   Server::Server *server = new Server::Server(
       sf::IpAddress::getLocalAddress().value_or(sf::IpAddress::LocalHost),
@@ -49,5 +49,7 @@ void Game::run() {
     serverThread.join();
 
   delete server;
+
+  SPDLOG_INFO("Ended running");
 }
 } // namespace Luntik

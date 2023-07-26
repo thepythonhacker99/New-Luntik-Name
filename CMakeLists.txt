@@ -11,3 +11,5 @@ link_libraries(sfml-system sfml-network sfml-graphics sfml-window)
 link_libraries(spdlog)
 
 add_executable(Luntik ${SRCS})
+
+set_property(TARGET Luntik PROPERTY CXX_STANDARD 20)

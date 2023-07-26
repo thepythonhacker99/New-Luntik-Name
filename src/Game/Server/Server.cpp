@@ -14,9 +14,7 @@
 
 namespace Luntik::Server {
 Server::Server(sf::IpAddress ip, uint16_t port)
-    : m_Ip(ip), m_Port(port)
-// : m_SocketServer(ip, port)
-{}
+    : m_Ip(ip), m_Port(port), m_SocketServer(ip, port) {}
 
 Server::~Server() {
   if (isRunning())
@@ -31,34 +29,33 @@ void Server::start() {
     return;
   }
 
-  // m_SocketServer.setClientConnectedCallback([](Networking::ID_t id) {
-  //   SPDLOG_INFO("Client connected with id: {}", id);
-  // });
-  //
-  // m_SocketServer.setClientDisconnectedCallback([this](Networking::ID_t id) {
-  //   SPDLOG_INFO("Client with id {} disconnected!", id);
-  //   if (m_SocketServer.clientsCount() == 0) {
-  //     end();
-  //   }
-  // });
+  m_SocketServer.setClientConnectedCallback([](Networking::ID_t id) {
+    SPDLOG_INFO("Client connected with id: {}", id);
+  });
 
-  // m_SocketServer.addReceiveCallback(
-  //     Packets::C2S_CHUNK_PACKET,
-  //     std::function<void(Networking::ID_t, Utils::Pos)>(
-  //         [this](Networking::ID_t senderId, Utils::Pos pos) {
-  //           SPDLOG_INFO("Received chunk request with pos {} {} from id {}",
-  //                       pos.x, pos.y, senderId);
-  //           m_SocketServer.send(
-  //               senderId,
-  //               Networking::createPacket<Packets::S2C_CHUNK_PACKET>(
-  //                             GameObjects::Chunk(pos)));
-  //         }));
+  m_SocketServer.setClientDisconnectedCallback([this](Networking::ID_t id) {
+    SPDLOG_INFO("Client with id {} disconnected!", id);
+    if (m_SocketServer.clientsCount() == 0) {
+      stop();
+    }
+  });
 
-  // m_SocketServer.start();
-  // if (!m_SocketServer.isListenThreadRunning()) {
-  //   SPDLOG_INFO("Failed to start SocketServer!");
-  //   return;
-  // }
+  m_SocketServer.addReceiveCallback(
+      Packets::C2S_CHUNK_PACKET,
+      std::function<void(Networking::ID_t, Utils::Pos)>(
+          [this](Networking::ID_t senderId, Utils::Pos pos) {
+            SPDLOG_INFO("Received chunk request with pos {} {} from id {}",
+                        pos.x, pos.y, senderId);
+            m_SocketServer.send(
+                senderId, Networking::createPacket<Packets::S2C_CHUNK_PACKET>(
+                              GameObjects::Chunk(pos)));
+          }));
+
+  m_SocketServer.start();
+  if (!m_SocketServer.isListenThreadRunning()) {
+    SPDLOG_INFO("Failed to start SocketServer!");
+    return;
+  }
 
   m_Running = true;
 }
@@ -69,8 +66,10 @@ void Server::stop() {
     return;
   }
 
-  // m_SocketServer.stop();
+  m_SocketServer.stop();
   m_Running = false;
+
+  SPDLOG_INFO("Stopped");
 }
 
 void Server::tick(float deltaTime) {
@@ -79,7 +78,7 @@ void Server::tick(float deltaTime) {
     return;
   }
 
-  // m_SocketServer.handleCallbacks();
+  m_SocketServer.handleCallbacks();
 }
 
 void Server::run() {

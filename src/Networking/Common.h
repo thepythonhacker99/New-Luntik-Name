@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Overloads.h"
 #include "SFML/Network/Packet.hpp"
 
 #include <algorithm>

@@ -1,10 +1,12 @@
 #pragma once
 
+#include "../../Networking/SocketClient.h"
 #include "../../Renderer/Window.h"
 #include "../GameObjects/TerrainManager.h"
 #include "../GameState.h"
 #include "SFML/Network/IpAddress.hpp"
 
+#include <atomic>
 #include <cstdint>
 
 namespace Luntik::Client {
@@ -24,6 +26,8 @@ public:
 private:
   sf::IpAddress m_Ip;
   uint16_t m_Port;
+
+  Networking::SocketClient m_SocketClient;
 
   GameState m_GameState;
   Renderer::Window *m_Window;

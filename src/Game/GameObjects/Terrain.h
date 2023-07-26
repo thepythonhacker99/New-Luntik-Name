@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../../Networking/Common.h"
 #include "../../Renderer/Window.h"
 #include "../../Utils/Pos.h"
 #include "../settings.h"
@@ -61,14 +60,3 @@ private:
   std::unordered_map<Utils::Pos, Chunk> m_Terrain;
 };
 } // namespace Luntik::GameObjects
-
-sf::Packet &operator<<(sf::Packet &packet,
-                       const Luntik::GameObjects::BlockType &type);
-
-sf::Packet &operator>>(sf::Packet &packet,
-                       Luntik::GameObjects::BlockType &type);
-
-sf::Packet &operator<<(sf::Packet &packet,
-                       const Luntik::GameObjects::Chunk &chunk);
-
-sf::Packet &operator>>(sf::Packet &packet, Luntik::GameObjects::Chunk &chunk);
