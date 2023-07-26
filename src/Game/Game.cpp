@@ -11,7 +11,7 @@
 #include <thread>
 
 namespace Luntik {
-Game::Game() { m_Window = new Renderer::Window("Luntik", 270); }
+Game::Game() { m_Window = new Renderer::Window("Luntik", 1000); }
 
 void Game::run() {
   Networking::registerPacket<Packets::C2S_CHUNK_PACKET, Utils::Pos>();

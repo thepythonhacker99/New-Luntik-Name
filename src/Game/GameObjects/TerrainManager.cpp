@@ -6,6 +6,7 @@
 #include "spdlog/spdlog.h"
 #include <cmath>
 #include <cstdint>
+#include <unordered_map>
 
 namespace Luntik::GameObjects {
 TerrainManager::TerrainManager(Terrain *terrainToManage,
@@ -120,5 +121,16 @@ void TerrainManager::tick(float deltaTime) {
 
   m_RenderPos.clear();
   requestChunksIfNotPresent();
+
+  std::erase_if(m_RenderCache, [this](const auto &pair) {
+    Utils::Pos pos = pair.first;
+    if (pos.x >= m_TopLeftChunk.x && pos.x <= m_BottomRightChunk.x) {
+      if (pos.y >= m_TopLeftChunk.y && pos.y <= m_BottomRightChunk.y) {
+        return false;
+      }
+    }
+
+    return true;
+  });
 }
 } // namespace Luntik::GameObjects
