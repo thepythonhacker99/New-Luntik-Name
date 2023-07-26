@@ -192,7 +192,7 @@ void SocketServer::handleCallbacks() {
       ID_t packetType;
 
       try {
-        ID_t packetType = getPacketType(packet);
+        packetType = getPacketType(packet);
       } catch (const std::exception &e) {
         SPDLOG_ERROR("Unable to find packet type");
         continue;

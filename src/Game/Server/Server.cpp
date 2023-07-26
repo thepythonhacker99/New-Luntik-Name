@@ -36,7 +36,7 @@ void Server::start() {
   m_SocketServer.setClientDisconnectedCallback([this](Networking::ID_t id) {
     SPDLOG_INFO("Client with id {} disconnected!", id);
     if (m_SocketServer.clientsCount() == 0) {
-      stop();
+      // stop();
     }
   });
 

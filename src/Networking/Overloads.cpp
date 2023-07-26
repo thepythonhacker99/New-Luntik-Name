@@ -1,5 +1,8 @@
 #include "Overloads.h"
 
+#include <cstdint>
+#include <iostream>
+
 sf::Packet &operator<<(sf::Packet &packet, const Luntik::Utils::Pos &pos) {
   return packet << pos.x << pos.y;
 }
@@ -10,12 +13,15 @@ sf::Packet &operator>>(sf::Packet &packet, Luntik::Utils::Pos &pos) {
 
 sf::Packet &operator<<(sf::Packet &packet,
                        const Luntik::GameObjects::BlockType &type) {
-  return packet << static_cast<uint16_t>(type);
+  return packet << static_cast<uint8_t>(type);
 }
 
 sf::Packet &operator>>(sf::Packet &packet,
                        Luntik::GameObjects::BlockType &type) {
-  return packet >> type;
+  uint8_t typeUint8;
+  packet >> typeUint8;
+  type = static_cast<Luntik::GameObjects::BlockType>(typeUint8);
+  return packet;
 }
 
 sf::Packet &operator<<(sf::Packet &packet,

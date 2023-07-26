@@ -11,7 +11,7 @@
 #include <unordered_map>
 
 namespace Luntik::GameObjects {
-enum BlockType { Stone, Air };
+enum BlockType : uint8_t { Stone, Air };
 
 struct Block {
   Utils::Pos pos; // relative to chunk
@@ -32,11 +32,7 @@ struct Chunk {
   Utils::Pos pos;
   Block blocks[Settings::CHUNK_SIZE_SQUARED];
 
-  Chunk() : pos(Utils::Pos(0, 0)) {
-    for (uint16_t i = 0; i < Settings::CHUNK_SIZE_SQUARED; i++) {
-      blocks[i] = Block();
-    }
-  }
+  Chunk() : pos(Utils::Pos(0, 0)) {}
 
   Chunk(Utils::Pos pos) : pos(pos) {
     for (uint16_t i = 0; i < Settings::CHUNK_SIZE_SQUARED; i++) {
@@ -50,8 +46,6 @@ struct Chunk {
 class Terrain {
 public:
   Terrain();
-
-  void render(Renderer::Window *window);
 
   std::unordered_map<Utils::Pos, Chunk> *getTerrain();
   Chunk *getChunk(Utils::Pos pos);

@@ -12,8 +12,8 @@
 
 namespace Luntik::Client {
 Client::Client(sf::IpAddress ip, uint16_t port, Renderer::Window *window)
-    : m_Window(window), m_Ip(ip), m_Port(port), m_GameState{},
-      m_TerrainManager(&m_GameState.terrain, m_Window),
+    : m_Window(window), m_Ip(ip), m_Port(port),
+      m_TerrainManager(&m_GameState.terrain, &m_SocketClient, m_Window),
       m_SocketClient(ip, port) {}
 
 Client::~Client() {
@@ -29,19 +29,24 @@ void Client::start() {
     return;
   }
 
-  m_Running = true;
-
   m_SocketClient.addReceiveCallback(
       Packets::S2C_CHUNK_PACKET,
       std::function<void(GameObjects::Chunk)>([this](GameObjects::Chunk chunk) {
-        SPDLOG_INFO("Received chunk with pos {} {}", chunk.pos.x, chunk.pos.y);
-        m_GameState.terrain.getTerrain()->operator[](chunk.pos) = chunk;
+        // SPDLOG_INFO("Received chunk with pos {} {}", chunk.pos.x,
+        // chunk.pos.y);
+        m_TerrainManager.onChunkReceive(chunk);
       }));
 
   m_SocketClient.start();
+  if (!m_SocketClient.isRunning()) {
+    SPDLOG_ERROR("Failed to start socket client!");
+    return;
+  }
 
-  m_SocketClient.send(
-      Networking::createPacket<Packets::C2S_CHUNK_PACKET>(Utils::Pos{0, 0}));
+  m_Running = true;
+
+  // m_SocketClient.send(
+  //     Networking::createPacket<Packets::C2S_CHUNK_PACKET>(Utils::Pos{0, 0}));
 }
 
 void Client::stop() {
@@ -66,8 +71,10 @@ void Client::tick(float deltaTime) {
     return;
   }
 
+  m_SocketClient.handleCallbacks();
+
   m_TerrainManager.tick(deltaTime);
-  m_GameState.terrain.render(m_Window);
+  m_TerrainManager.render(m_Window);
 
   m_Window->display();
 }

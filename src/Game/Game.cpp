@@ -41,7 +41,7 @@ void Game::run() {
 
   delete client;
 
-  // std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+  std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
   server->stop();
 
