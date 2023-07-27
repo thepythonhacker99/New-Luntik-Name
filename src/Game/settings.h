@@ -2,10 +2,15 @@
 
 #include "SFML/Graphics/Color.hpp"
 
+#include <cstddef>
 #include <cstdint>
 
+namespace Luntik {
+using ID_t = size_t;
+}
+
 namespace Luntik::Settings {
-constexpr sf::Color CLEAR_COLOR = sf::Color(15, 15, 30);
+constexpr sf::Color CLEAR_COLOR = sf::Color(0, 28, 48);
 
 constexpr uint16_t BLOCK_SIZE = 16;
 

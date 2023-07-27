@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Game/settings.h"
 #include "Overloads.h"
 #include "SFML/Network/Packet.hpp"
 
@@ -16,8 +17,6 @@
 #include <unordered_map>
 
 namespace Luntik::Networking {
-using ID_t = size_t;
-
 template <typename T> T packetReader(sf::Packet &packet) {
   // SPDLOG_INFO("READING FROM PACKET {}", Utils::type_name<T>());
   T instance;

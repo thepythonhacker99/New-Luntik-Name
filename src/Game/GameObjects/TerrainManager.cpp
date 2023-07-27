@@ -1,8 +1,10 @@
 #include "TerrainManager.h"
 
 #include "../Packets.h"
+#include "../Textures.h"
 #include "SFML/Graphics/RenderTexture.hpp"
 #include "SFML/System/Vector2.hpp"
+#include "Terrain.h"
 #include "spdlog/spdlog.h"
 #include <cmath>
 #include <cstdint>
@@ -13,7 +15,9 @@ TerrainManager::TerrainManager(Terrain *terrainToManage,
                                Networking::SocketClient *socketClient,
                                Renderer::Window *window)
     : m_TerrainToManage(terrainToManage), m_Window(window),
-      m_SocketClient(socketClient) {}
+      m_TileMap(&Textures::s_TerrainTexture, 16), m_SocketClient(socketClient) {
+  m_TileMap.registerTile(BlockType::Stone, Utils::Pos(1, 1));
+}
 
 TerrainManager::~TerrainManager() {
   m_RenderCache.clear();
@@ -48,18 +52,16 @@ void TerrainManager::updateChunkRenderCache(Utils::Pos pos) {
 
   texture->clear(sf::Color::Transparent);
 
-  sf::RectangleShape rect;
-  rect.setSize(sf::Vector2f{Settings::BLOCK_SIZE, Settings::BLOCK_SIZE});
-  rect.setFillColor(sf::Color(30, 30, 15));
+  sf::Sprite sprite = m_TileMap.getTile(BlockType::Stone);
 
   for (const auto &[blockPos, type] : chunk->blocks) {
     if (type == BlockType::Air)
       continue;
 
-    rect.setPosition(sf::Vector2f{float(Settings::BLOCK_SIZE * blockPos.x),
-                                  float(Settings::BLOCK_SIZE * blockPos.y)});
+    sprite.setPosition(sf::Vector2f{float(Settings::BLOCK_SIZE * blockPos.x),
+                                    float(Settings::BLOCK_SIZE * blockPos.y)});
 
-    texture->draw(rect);
+    texture->draw(sprite);
   }
 };
 

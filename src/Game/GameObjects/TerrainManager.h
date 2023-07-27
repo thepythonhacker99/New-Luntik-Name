@@ -3,6 +3,7 @@
 #include "../../Networking/SocketClient.h"
 #include "SFML/Graphics/RenderTexture.hpp"
 #include "Terrain.h"
+#include "TileMap.h"
 #include <unordered_map>
 #include <vector>
 
@@ -24,6 +25,8 @@ private:
   void updateChunkRenderCache(Utils::Pos pos);
 
   Utils::Pos pixelToChunkPos(sf::Vector2f pixel);
+
+  TileMap m_TileMap;
 
   Utils::Pos m_TopLeftChunk;
   Utils::Pos m_BottomRightChunk;

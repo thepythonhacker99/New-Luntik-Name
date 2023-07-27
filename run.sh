@@ -1,3 +1,2 @@
 ./build.sh
-cd build
-./Luntik
+./build/Luntik

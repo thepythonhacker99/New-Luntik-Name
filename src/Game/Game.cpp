@@ -4,6 +4,7 @@
 #include "Client/Client.h"
 #include "Packets.h"
 #include "Server/Server.h"
+#include "Textures.h"
 
 #include <chrono>
 #include <iostream>
@@ -16,6 +17,8 @@ Game::Game() { m_Window = new Renderer::Window("Luntik", 540); }
 void Game::run() {
   Networking::registerPacket<Packets::C2S_CHUNK_PACKET, Utils::Pos>();
   Networking::registerPacket<Packets::S2C_CHUNK_PACKET, GameObjects::Chunk>();
+
+  Textures::loadTextures();
 
   Server::Server *server = new Server::Server(
       sf::IpAddress::getLocalAddress().value_or(sf::IpAddress::LocalHost),

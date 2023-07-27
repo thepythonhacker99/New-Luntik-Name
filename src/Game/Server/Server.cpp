@@ -29,11 +29,10 @@ void Server::start() {
     return;
   }
 
-  m_SocketServer.setClientConnectedCallback([](Networking::ID_t id) {
-    SPDLOG_INFO("Client connected with id: {}", id);
-  });
+  m_SocketServer.setClientConnectedCallback(
+      [](ID_t id) { SPDLOG_INFO("Client connected with id: {}", id); });
 
-  m_SocketServer.setClientDisconnectedCallback([this](Networking::ID_t id) {
+  m_SocketServer.setClientDisconnectedCallback([this](ID_t id) {
     SPDLOG_INFO("Client with id {} disconnected!", id);
     if (m_SocketServer.clientsCount() == 0) {
       // stop();
@@ -42,8 +41,8 @@ void Server::start() {
 
   m_SocketServer.addReceiveCallback(
       Packets::C2S_CHUNK_PACKET,
-      std::function<void(Networking::ID_t, Utils::Pos)>(
-          [this](Networking::ID_t senderId, Utils::Pos pos) {
+      std::function<void(ID_t, Utils::Pos)>(
+          [this](ID_t senderId, Utils::Pos pos) {
             // SPDLOG_INFO("Received chunk request with pos {} {} from id {}",
             //             pos.x, pos.y, senderId);
             //             m_SocketServer.send(
