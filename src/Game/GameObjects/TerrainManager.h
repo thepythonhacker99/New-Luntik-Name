@@ -27,6 +27,7 @@ private:
   Utils::Pos pixelToChunkPos(sf::Vector2f pixel);
 
   TileMap m_TileMap;
+  // AutoTileMap m_AutoTileMap;
 
   Utils::Pos m_TopLeftChunk;
   Utils::Pos m_BottomRightChunk;

@@ -12,15 +12,28 @@ struct Pos {
   Pos() : x(0), y(0) {}
   Pos(int x, int y) : x(x), y(y) {}
 
-  bool operator==(Pos other) const { return other.x == x && other.y == y; }
+  Pos operator+(const int &other) const { return Pos{x + other, y + other}; }
+  Pos operator-(const int &other) const { return Pos{x - other, y - other}; }
+  Pos operator*(const int &other) const { return Pos{x * other, y * other}; }
+  Pos operator/(const int &other) const { return Pos{x / other, y / other}; }
 
-  Pos operator+(int other) const { return Pos{x + other, y + other}; }
-  Pos operator-(int other) const { return Pos{x - other, y - other}; }
-  Pos operator*(int other) const { return Pos{x * other, y * other}; }
-  Pos operator/(int other) const { return Pos{x / other, y / other}; }
+  Pos operator+(const Pos &other) const {
+    return Pos{x + other.x, y + other.y};
+  }
+  Pos operator-(const Pos &other) const {
+    return Pos{x - other.x, y - other.y};
+  }
+  Pos operator*(const Pos &other) const {
+    return Pos{x * other.x, y * other.y};
+  }
+  Pos operator/(const Pos &other) const {
+    return Pos{x / other.x, y / other.y};
+  }
 
-  bool operator==(const Pos &other) { return x == other.x && y == other.y; }
-  bool operator!=(const Pos &other) { return !(*this == other); }
+  bool operator==(const Pos &other) const {
+    return x == other.x && y == other.y;
+  }
+  bool operator!=(const Pos &other) const { return !(*this == other); }
 };
 } // namespace Luntik::Utils
 

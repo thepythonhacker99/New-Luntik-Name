@@ -42,6 +42,10 @@ struct Chunk {
                         BlockType::Stone);
     }
   }
+
+  Block *getBlock(Utils::Pos pos) {
+    return &blocks[pos.y * Settings::CHUNK_SIZE + pos.x];
+  }
 };
 
 class Terrain {
@@ -50,6 +54,7 @@ public:
 
   std::unordered_map<Utils::Pos, Chunk> *getTerrain();
   Chunk *getChunk(Utils::Pos pos);
+  Block *getBlock(Utils::Pos pos);
 
   Chunk *generateChunk(Utils::Pos pos);
 

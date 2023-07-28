@@ -44,4 +44,17 @@ std::unordered_map<Utils::Pos, Chunk> *Terrain::getTerrain() {
 Chunk *Terrain::getChunk(Utils::Pos pos) {
   return m_Terrain.find(pos) == m_Terrain.end() ? nullptr : &m_Terrain.at(pos);
 }
+
+Block *Terrain::getBlock(Utils::Pos pos) {
+  // SPDLOG_INFO("{} {}", pos.x, pos.y);
+  // Utils::Pos chunkPos = pos / Settings::CHUNK_SIZE;
+  Utils::Pos chunkPos = Utils::Pos(0, 0) / Settings::CHUNK_SIZE;
+
+  Chunk *chunk = getChunk(chunkPos);
+  if (chunk) {
+    return chunk->getBlock(pos - (chunkPos * Settings::CHUNK_SIZE));
+  }
+
+  return nullptr;
+}
 } // namespace Luntik::GameObjects

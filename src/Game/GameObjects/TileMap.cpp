@@ -13,6 +13,8 @@ TileMap::TileMap(sf::Texture *tileTexture, int tileSize) {
   m_TilesOnX = m_TileMapTexture->getSize().x / m_TileSize;
   m_TilesOnY = m_TileMapTexture->getSize().y / m_TileSize;
 
+  // SPDLOG_INFO("{} {}", m_TilesOnX, m_TilesOnY);
+
   if (m_TilesOnX * m_TileSize != m_TileMapTexture->getSize().x) {
     SPDLOG_WARN("TileSize * TilesOnX isn't a multiple of TileMapSizeX");
   }
@@ -56,10 +58,9 @@ sf::Sprite TileMap::getTile(ID_t id) {
   }
 
   Utils::Pos pos = m_Tiles.at(id);
+  // SPDLOG_INFO("{}, {}", pos.x, pos.y);
 
-  sf::Sprite sprite(*m_TileMapTexture, getRect(pos.x, pos.y));
-
-  return std::move(sprite);
+  return sf::Sprite(*m_TileMapTexture, getRect(pos.x, pos.y));
 }
 
 void TileMap::setTexture(sf::Sprite *sprite, ID_t id) {
