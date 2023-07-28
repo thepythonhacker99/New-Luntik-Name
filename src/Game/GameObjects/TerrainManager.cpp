@@ -152,8 +152,6 @@ void TerrainManager::tick(float deltaTime) {
   if (m_ClearRequestedChunks >= 3.f) {
     m_ClearRequestedChunks -= 3.f;
     m_RequestedChunks.clear();
-
-    m_RenderCache.clear();
   } else {
     m_RequestedChunks.erase(
         std::remove_if(m_RequestedChunks.begin(), m_RequestedChunks.end(),
