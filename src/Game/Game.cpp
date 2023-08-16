@@ -4,6 +4,7 @@
 #include "Client/Client.h"
 #include "Entities/PlayerInfo.h"
 #include "Packets.h"
+#include "SFML/Network/IpAddress.hpp"
 #include "SFML/System/Vector2.hpp"
 #include "Server/Server.h"
 #include "Textures.h"
@@ -15,7 +16,9 @@
 #include <unordered_map>
 
 namespace Luntik {
-Game::Game() { m_Window = new Renderer::Window("Luntik", 540); }
+Game::Game(sf::IpAddress ip) : m_Ip(ip) {
+  m_Window = new Renderer::Window("Luntik", 540);
+}
 
 void Game::run() {
   Networking::registerPacket<Packets::C2S_CHUNK_PACKET, Utils::Pos>();
@@ -35,13 +38,13 @@ void Game::run() {
 
   Textures::loadTextures();
 
-  Server::Server *server = new Server::Server(
-      sf::IpAddress::getLocalAddress().value_or(sf::IpAddress::LocalHost),
-      6969);
+  constexpr int port = 6969;
 
-  Client::Client *client = new Client::Client(
-      sf::IpAddress::getLocalAddress().value_or(sf::IpAddress::LocalHost), 6969,
-      m_Window);
+  SPDLOG_INFO("Running game on address: {} and port {}", m_Ip.toString(), port);
+
+  Server::Server *server = new Server::Server(m_Ip, port);
+
+  Client::Client *client = new Client::Client(m_Ip, port, m_Window);
 
   std::thread serverThread([&server]() {
     server->start();
