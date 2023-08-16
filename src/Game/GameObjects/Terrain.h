@@ -53,7 +53,10 @@ public:
   Terrain();
 
   std::unordered_map<Utils::Pos, Chunk> *getTerrain();
+
   Chunk *getChunk(Utils::Pos pos);
+  Chunk *getChunkOrGenerate(Utils::Pos pos);
+
   Block *getBlock(Utils::Pos pos);
 
   Chunk *generateChunk(Utils::Pos pos);

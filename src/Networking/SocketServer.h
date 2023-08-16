@@ -45,6 +45,7 @@ public:
   void stop();
 
   void send(ID_t id, sf::Packet packet);
+  void sendAll(sf::Packet packet, ID_t exclude = ID_t_MAX);
 
   void setClientConnectedCallback(ClientConnectedCallback callback);
   void setClientDisconnectedCallback(ClientDisconnectedCallback callback);

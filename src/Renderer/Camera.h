@@ -19,6 +19,9 @@ public:
   sf::Vector2f getBottomLeft();
   sf::Vector2f getBottomRight();
 
+  void setGoal(sf::Vector2f goal);
+  sf::Vector2f getGoal() const;
+
   void tick(float deltaTime, sf::Vector2u windowSize);
 
 private:
@@ -27,7 +30,7 @@ private:
   void moveTowards(sf::Vector2f goal, float amount, float deltaTime);
 
   bool m_Smooth = true;
-  float m_SmoothAmount = 1.f;
+  float m_SmoothAmount = 5.f;
 
   sf::Vector2f m_Goal;
   uint32_t m_Height;

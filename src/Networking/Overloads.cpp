@@ -47,3 +47,13 @@ sf::Packet &operator>>(sf::Packet &packet, Luntik::GameObjects::Chunk &chunk) {
 
   return packet;
 }
+
+sf::Packet &operator<<(sf::Packet &packet,
+                       const Luntik::Entities::PlayerInfo &player) {
+  return packet << player.socketHandle << player.pos;
+}
+
+sf::Packet &operator>>(sf::Packet &packet,
+                       Luntik::Entities::PlayerInfo &player) {
+  return packet >> player.socketHandle >> player.pos;
+}

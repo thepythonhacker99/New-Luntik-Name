@@ -13,6 +13,10 @@ float Camera::getAspectRatio(sf::Vector2f size) const {
   return size.x / size.y;
 }
 
+void Camera::setGoal(sf::Vector2f goal) { m_Goal = goal; }
+
+sf::Vector2f Camera::getGoal() const { return m_Goal; }
+
 sf::Vector2f Camera::getTopLeft() {
   return getCenter() + sf::Vector2f(-getSize().x / 2.f, -getSize().y / 2.f);
 }

@@ -2,14 +2,20 @@
 
 #include "../../Utils/Pos.h"
 #include "../../Utils/Timers.h"
+#include "../Entities/PlayerInfo.h"
 #include "../GameObjects/Terrain.h"
 #include "../Packets.h"
 #include "SFML/Network/IpAddress.hpp"
 #include "SFML/System/Clock.hpp"
+#include "SFML/System/Vector2.hpp"
+#include "SFML/Window/Cursor.hpp"
+#include "random/random.h"
 #include "spdlog/spdlog.h"
 
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
+#include <functional>
 #include <iostream>
 
 namespace Luntik::Server {
@@ -29,30 +35,47 @@ void Server::start() {
     return;
   }
 
-  m_SocketServer.setClientConnectedCallback(
-      [](ID_t id) { SPDLOG_INFO("Client connected with id: {}", id); });
+  m_SocketServer.setClientConnectedCallback([this](ID_t id) {
+    addPlayer(id);
+
+    SPDLOG_INFO("Client connected with network handle: {}", id);
+  });
 
   m_SocketServer.setClientDisconnectedCallback([this](ID_t id) {
     SPDLOG_INFO("Client with id {} disconnected!", id);
-    if (m_SocketServer.clientsCount() == 0) {
-      // stop();
-    }
+    removePlayer(id);
+    // if (m_SocketServer.clientsCount() == 0) {
+    //   stop();
+    // }
   });
+
+  m_SocketServer.addReceiveCallback(Packets::C2S_POSITION_PACKET,
+                                    std::function<void(ID_t, sf::Vector2f)>(
+                                        [this](ID_t id, sf::Vector2f pos) {
+                                          if (m_GameState.hasPlayer(id)) {
+                                            m_GameState.players.at(id).pos =
+                                                pos;
+                                          } else {
+                                            // SPDLOG_INFO("Received pos from
+                                            // non-registered player id {}",
+                                            // id);
+                                          }
+                                        }));
 
   m_SocketServer.addReceiveCallback(
       Packets::C2S_CHUNK_PACKET,
-      std::function<void(ID_t, Utils::Pos)>(
-          [this](ID_t senderId, Utils::Pos pos) {
-            // SPDLOG_INFO("Received chunk request with pos {} {} from id {}",
-            //             pos.x, pos.y, senderId);
-            //             m_SocketServer.send(
+      std::function<void(ID_t, Utils::Pos)>([this](ID_t senderId,
+                                                   Utils::Pos pos) {
+        // SPDLOG_INFO("Received chunk request with pos {} {} from id {}",
+        //             pos.x, pos.y, senderId);
+        //             m_SocketServer.send(
 
-            GameObjects::Chunk *chunk = m_GameState.terrain.generateChunk(pos);
+        GameObjects::Chunk *chunk = m_GameState.terrain.getChunkOrGenerate(pos);
 
-            m_SocketServer.send(
-                senderId,
-                Networking::createPacket<Packets::S2C_CHUNK_PACKET>(*chunk));
-          }));
+        m_SocketServer.send(
+            senderId,
+            Networking::createPacket<Packets::S2C_CHUNK_PACKET>(*chunk));
+      }));
 
   m_SocketServer.start();
   if (!m_SocketServer.isListenThreadRunning()) {
@@ -61,6 +84,35 @@ void Server::start() {
   }
 
   m_Running = true;
+}
+
+void Server::addPlayer(ID_t handleId) {
+  Entities::PlayerInfo info(handleId);
+
+  m_GameState.players.emplace(handleId, info);
+
+  m_SocketServer.send(
+      handleId,
+      Networking::createPacket<Packets::S2C_PLAYER_ID_PACKET>(handleId));
+
+  std::unordered_map<ID_t, Entities::PlayerInfo> newPlayer;
+  newPlayer.emplace(handleId, info);
+
+  m_SocketServer.sendAll(
+      Networking::createPacket<Packets::S2C_PLAYERS_INFO_PACKET>(newPlayer),
+      handleId);
+
+  m_SocketServer.send(
+      handleId, Networking::createPacket<Packets::S2C_PLAYERS_INFO_PACKET>(
+                    m_GameState.players));
+}
+
+void Server::removePlayer(ID_t handleId) {
+  m_GameState.players.erase(handleId);
+
+  m_SocketServer.sendAll(
+      Networking::createPacket<Packets::S2C_PLAYER_DISCONNECTED_PACKET>(
+          handleId));
 }
 
 void Server::stop() {
@@ -82,6 +134,10 @@ void Server::tick(float deltaTime) {
   }
 
   m_SocketServer.handleCallbacks();
+
+  m_SocketServer.sendAll(
+      Networking::createPacket<Packets::S2C_PLAYERS_POSITION_PACKET>(
+          m_GameState.getPlayersPosMap()));
 }
 
 void Server::run() {
@@ -95,7 +151,7 @@ void Server::run() {
   int fps = 0;
   float timeForFps = 0.f;
 
-  Utils::Timers::BlockingTimer<20> serverTimer;
+  Utils::Timers::BlockingTimer<Settings::SERVER_TPS> serverTimer;
 
   m_Running = true;
   while (isRunning()) {

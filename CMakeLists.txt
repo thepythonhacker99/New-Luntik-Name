@@ -11,6 +11,7 @@ link_libraries(sfml-system sfml-network sfml-graphics sfml-window)
 link_libraries(spdlog)
 
 include_directories(./libs/FastNoiseLite/)
+include_directories(./libs/random/)
 
 add_executable(Luntik ${SRCS})
 

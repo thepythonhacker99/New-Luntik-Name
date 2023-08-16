@@ -67,6 +67,10 @@ void SocketClient::clientThread() {
 
 bool SocketClient::isRunning() { return m_ClientThreadRunning; }
 
+void SocketClient::setDisconnectionCallback(DisconnectionCallback callback) {
+  m_DisconnectionCallback = callback;
+}
+
 void SocketClient::send(sf::Packet packet) {
   if (m_Socket.send(packet) != sf::Socket::Status::Done) {
     SPDLOG_ERROR("Failed to send packet");
@@ -74,6 +78,10 @@ void SocketClient::send(sf::Packet packet) {
 }
 
 void SocketClient::handleCallbacks() {
+  if (!m_ClientThreadRunning) {
+    m_DisconnectionCallback();
+  }
+
   m_ReceivedPacketsMutex.lock();
   for (sf::Packet &packet : m_ReceivedPackets) {
     ID_t packetType;

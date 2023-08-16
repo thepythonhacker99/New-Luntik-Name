@@ -68,6 +68,7 @@ void SocketServer::listenThread() {
   while (m_ListenThreadRunning) {
     sf::TcpSocket *newClient = new sf::TcpSocket;
     sf::Socket::Status status = listener.accept(*newClient);
+
     if (status > sf::Socket::Status::NotReady) {
       SPDLOG_ERROR("Failed to accept client");
       delete newClient;
@@ -86,6 +87,12 @@ void SocketServer::listenThread() {
           std::thread(&SocketServer::clientThread, this, newClientInfo);
 
       m_ClientsMutex.unlock();
+
+      m_ConnectedClientsMutex.lock();
+      m_ConnectedClients.push_back(newClientId);
+      m_ConnectedClientsMutex.unlock();
+    } else {
+      delete newClient;
     }
 
     sf::sleep(sf::milliseconds(100));
@@ -139,8 +146,25 @@ bool SocketServer::clientOnline(ID_t id) {
 
 void SocketServer::send(ID_t id, sf::Packet packet) {
   std::lock_guard guard(m_ClientsMutex);
+  if (m_Clients.find(id) == m_Clients.end()) {
+    SPDLOG_ERROR("Client not online: {}", id);
+    return;
+  }
+
   if (m_Clients.at(id).socket->send(packet) != sf::Socket::Status::Done) {
-    SPDLOG_ERROR("Failed to send to client {}", id);
+    SPDLOG_ERROR("Failed to send packet to client {}", id);
+  }
+}
+
+void SocketServer::sendAll(sf::Packet packet, ID_t exclude) {
+  std::lock_guard guard(m_ClientsMutex);
+  for (auto &[id, info] : m_Clients) {
+    if (id == exclude)
+      continue;
+
+    if (info.socket->send(packet) != sf::Socket::Status::Done) {
+      SPDLOG_ERROR("Failed to send packet to client {}", id);
+    }
   }
 }
 

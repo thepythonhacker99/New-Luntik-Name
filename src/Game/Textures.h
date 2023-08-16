@@ -9,6 +9,7 @@ namespace Luntik::Textures {
 // enum TerrainTileId { TERRAIN_TILE_MIDDLE, TERRAIN_TILE_TOP_LEFT };
 
 inline sf::Texture s_TerrainTexture;
+inline sf::Texture s_PlayerTexture;
 // inline sf::Texture s_EmptyTexture;
 
 inline sf::Texture loadTexture(const std::string &path) {
@@ -29,5 +30,6 @@ inline void loadTextures() {
   // s_EmptyTexture.update(pixel);
 
   s_TerrainTexture = loadTexture("images/terrain.png");
+  s_PlayerTexture = loadTexture("images/player.png");
 }
 } // namespace Luntik::Textures

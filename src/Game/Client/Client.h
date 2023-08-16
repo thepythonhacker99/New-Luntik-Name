@@ -2,12 +2,14 @@
 
 #include "../../Networking/SocketClient.h"
 #include "../../Renderer/Window.h"
+#include "../Entities/Client/ClientEntityManager.h"
 #include "../GameObjects/TerrainManager.h"
 #include "../GameState.h"
 #include "SFML/Network/IpAddress.hpp"
 
 #include <atomic>
 #include <cstdint>
+#include <limits>
 
 namespace Luntik::Client {
 class Client : Utils::NonCopyable {
@@ -24,6 +26,8 @@ public:
   void run();
 
 private:
+  ID_t m_PlayerId = ID_t_MAX;
+
   sf::IpAddress m_Ip;
   uint16_t m_Port;
 
@@ -33,6 +37,7 @@ private:
   Renderer::Window *m_Window;
 
   GameObjects::TerrainManager m_TerrainManager;
+  Entities::ClientEntityManager m_EntityManager;
 
   std::atomic<bool> m_Running = false;
 };

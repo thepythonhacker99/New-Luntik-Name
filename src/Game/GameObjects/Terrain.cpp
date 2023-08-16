@@ -45,6 +45,14 @@ Chunk *Terrain::getChunk(Utils::Pos pos) {
   return m_Terrain.find(pos) == m_Terrain.end() ? nullptr : &m_Terrain.at(pos);
 }
 
+Chunk *Terrain::getChunkOrGenerate(Utils::Pos pos) {
+  if (m_Terrain.find(pos) == m_Terrain.end()) {
+    generateChunk(pos);
+  }
+
+  return &m_Terrain.at(pos);
+}
+
 Block *Terrain::getBlock(Utils::Pos pos) {
   // SPDLOG_INFO("{} {}", pos.x, pos.y);
   // Utils::Pos chunkPos = pos / Settings::CHUNK_SIZE;

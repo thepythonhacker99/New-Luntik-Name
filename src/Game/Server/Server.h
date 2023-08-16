@@ -24,6 +24,9 @@ public:
   void run();
 
 private:
+  void addPlayer(ID_t handleId);
+  void removePlayer(ID_t handleId);
+
   Networking::SocketServer m_SocketServer;
 
   GameState m_GameState;

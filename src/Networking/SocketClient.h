@@ -17,6 +17,7 @@
 #include <vector>
 
 namespace Luntik::Networking {
+using DisconnectionCallback = std::function<void()>;
 using ClientReceiveInternalCallback = std::function<void(sf::Packet)>;
 
 class SocketClient : Utils::NonCopyable {
@@ -32,6 +33,8 @@ public:
   void send(sf::Packet packet);
 
   void handleCallbacks();
+
+  void setDisconnectionCallback(DisconnectionCallback callback);
 
   template <typename... args_t>
   void addReceiveCallback(ID_t id, std::function<void(args_t...)> callback) {
@@ -63,9 +66,10 @@ private:
   std::thread m_ClientThread;
 
   std::unordered_map<ID_t, ClientReceiveInternalCallback> m_Callbacks;
-
   std::mutex m_ReceivedPacketsMutex;
   std::vector<sf::Packet> m_ReceivedPackets;
+
+  DisconnectionCallback m_DisconnectionCallback;
 
   sf::IpAddress m_Ip;
   uint16_t m_Port;

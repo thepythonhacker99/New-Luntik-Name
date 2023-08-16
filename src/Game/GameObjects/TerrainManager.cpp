@@ -17,15 +17,8 @@ TerrainManager::TerrainManager(Terrain *terrainToManage,
                                Renderer::Window *window)
     : m_TerrainToManage(terrainToManage), m_Window(window),
       m_TileMap(&Textures::s_TerrainTexture, Settings::BLOCK_SIZE),
-      // m_AutoTileMap(&m_TileMap),
       m_SocketClient(socketClient) {
   m_TileMap.registerTile(BlockType::Stone, Utils::Pos(1, 1));
-  // m_TileMap.registerTile(Textures::TERRAIN_TILE_TOP_LEFT, Utils::Pos(0, 0));
-
-  // m_AutoTileMap.setTileRule(TILE_RULE_ALL, Textures::TERRAIN_TILE_MIDDLE);
-  // m_AutoTileMap.setTileRule(TILE_RULE_MIDDLES | TILE_RULE_BOTTOM |
-  //                               TILE_RULE_RIGHT,
-  //                           Textures::TERRAIN_TILE_TOP_LEFT);
 }
 
 TerrainManager::~TerrainManager() {
@@ -64,41 +57,16 @@ void TerrainManager::updateChunkRenderCache(Utils::Pos pos) {
   for (const auto &[blockPos, type] : chunk->blocks) {
     if (type == BlockType::Air)
       continue;
-    // SPDLOG_INFO("{} {}", blockPos.x, blockPos.y);
-
-    // sprite.setPosition(sf::Vector2f{float(Settings::BLOCK_SIZE * blockPos.x),
-    //                                 float(Settings::BLOCK_SIZE *
-    //                                 blockPos.y)});
-
-    // sf::Sprite sprite = m_AutoTileMap.getTileForRule(
-    //     (pos * Settings::CHUNK_SIZE) + blockPos, m_TerrainToManage);
-
-    // sprite.setPosition(sprite.getPosition() * float(Settings::BLOCK_SIZE));
-    //
-    //
-    // sf::Sprite sprite = m_AutoTileMap.getTileForRule(
-    // TILE_RULE_MIDDLES | TILE_RULE_BOTTOM | TILE_RULE_RIGHT);
 
     sf::Sprite sprite = m_TileMap.getTile(type);
-    // sprite.setPosition((pos * Settings::CHUNK_SIZE + blockPos));
-
-    // Utils::Pos p = pos * Settings::CHUNK_SIZE + blockPos;
-
     sprite.setPosition(sf::Vector2f(blockPos.x * Settings::BLOCK_SIZE,
                                     blockPos.y * Settings::BLOCK_SIZE));
 
     texture->draw(sprite);
-    // texture->draw(m_AutoTileMap.getTileForRule(TILE_RULE_ALL));
   }
 };
 
 void TerrainManager::requestChunksIfNotPresent() {
-  // SPDLOG_INFO("Chunks size: {} {}", m_BottomRightChunk.x - m_TopLeftChunk.x,
-  // m_BottomRightChunk.y - m_TopLeftChunk.y);
-
-  // SPDLOG_INFO("Bottom right chunk {}", m_BottomRightChunk.x,
-  // m_BottomRightChunk.y);
-
   for (int x = m_TopLeftChunk.x - 1; x <= m_BottomRightChunk.x + 1; x++) {
     for (int y = m_TopLeftChunk.y - 1; y <= m_BottomRightChunk.y + 1; y++) {
       Utils::Pos pos(x, y);
