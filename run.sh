@@ -1,2 +1,3 @@
-[ $1 = u ] && ./build.sh u || ./build.sh
-./build/Luntik
+./build.sh $@ &&
+[ "$1" = "u" ] && ./build/Luntik ${@:2} || ./build/Luntik $@
+# echo $@ | grep "" && ./build/Luntik ${@:2} || ./build/Luntik $@
