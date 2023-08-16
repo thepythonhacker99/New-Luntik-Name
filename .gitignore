@@ -1,2 +1,5 @@
 build
 .cache
+
+libs/SFML/
+libs/spdlog/
