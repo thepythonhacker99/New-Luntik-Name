@@ -4,12 +4,18 @@
 #include "../../Utils/Math.h"
 #include "../../Utils/Pos.h"
 #include "../../Utils/Timers.h"
-#include "../Entities/Client/ClientNetworkPlayer.h"
-#include "../Entities/Client/ClientPlayerEntity.h"
+#include "../Components/KeyboardMovementComponent.h"
+#include "../Components/PositionComponent.h"
+#include "../Components/PositionInterpolatorComponent.h"
+#include "../Components/RenderComponent.h"
 #include "../Packets.h"
+#include "../Systems/Systems.h"
+#include "../Textures.h"
 #include "SFML/Network/IpAddress.hpp"
 #include "SFML/System/Vector2.hpp"
+#include "entt/entity/fwd.hpp"
 #include "spdlog/spdlog.h"
+
 #include <cstdint>
 #include <functional>
 #include <iostream>
@@ -66,14 +72,46 @@ void Client::start() {
 
               if (!playerExists) {
                 if (id == m_PlayerId) {
-                  Entities::ClientPlayerEntity *playerEntity =
-                      m_EntityManager.addEntity(
-                          id, new Entities::ClientPlayerEntity(
-                                  id, &playerInfoClient));
+                  entt::entity playerEntity = m_World.create();
+                  m_Entities[id] = playerEntity;
+
+                  m_World.emplace<Components::KeyboardMovementComponent>(
+                      playerEntity);
+
+                  auto &positionComponent =
+                      m_World.emplace<Components::PositionComponent>(
+                          playerEntity);
+
+                  positionComponent = info.pos;
+
+                  auto &renderComponent =
+                      m_World.emplace<Components::RenderComponent>(
+                          playerEntity);
+                  renderComponent.texture = &Textures::s_PlayerTexture;
+
                 } else {
-                  Entities::ClientNetworkPlayer *playerEntity =
-                      m_EntityManager.addEntity(
-                          id, new Entities::ClientNetworkPlayer(id));
+                  // Entities::ClientNetworkPlayer *playerEntity =
+                  //     m_EntityManager.addEntity(
+                  //         id, new Entities::ClientNetworkPlayer(id));
+
+                  entt::entity playerEntity = m_World.create();
+                  m_Entities[id] = playerEntity;
+
+                  auto &positionComponent =
+                      m_World.emplace<Components::PositionComponent>(
+                          playerEntity);
+
+                  positionComponent = info.pos;
+
+                  auto &positionInterpolatorComponent =
+                      m_World
+                          .emplace<Components::PositionInterpolatorComponent>(
+                              playerEntity);
+
+                  auto &renderComponent =
+                      m_World.emplace<Components::RenderComponent>(
+                          playerEntity);
+                  renderComponent.texture = &Textures::s_PlayerTexture;
                 }
               }
             }
@@ -91,18 +129,28 @@ void Client::start() {
                 continue;
               }
 
-              if (id != m_PlayerId ||
-                  Utils::distanceSquared(pos, m_GameState.players.at(id).pos) >
-                      Settings::MAX_POS_DIFFERENCE_SQ) {
-                // SPDLOG_INFO("SETTING POS FOR {}", id);
-                Entities::ClientEntity *entity = m_EntityManager.getEntity(id);
-                if (!entity) {
-                  SPDLOG_ERROR("Received pos for player {} but the player "
-                               "entity is not registered!",
-                               id);
-                } else {
-                  entity->setPos(pos);
+              if (m_Entities.find(id) == m_Entities.end()) {
+                SPDLOG_ERROR(
+                    "Received pos for player with id {} but the player "
+                    "entity is not registered!",
+                    id);
+              }
+
+              entt::entity entity = m_Entities.at(id);
+
+              if (id == m_PlayerId) {
+                if (Utils::distanceSquared(pos,
+                                           m_GameState.players.at(id).pos) >
+                    Settings::MAX_POS_DIFFERENCE_SQ) {
+                  auto &positionComponent =
+                      m_World.get<Components::PositionComponent>(entity);
+                  positionComponent = pos;
                 }
+              } else {
+                auto &positionInterpolatorComponent =
+                    m_World.get<Components::PositionInterpolatorComponent>(
+                        entity);
+                positionInterpolatorComponent.setGoal(pos);
               }
             }
           }));
@@ -110,8 +158,15 @@ void Client::start() {
   m_SocketClient.addReceiveCallback(
       Packets::S2C_PLAYER_DISCONNECTED_PACKET,
       std::function<void(ID_t)>([this](ID_t id) {
-        m_EntityManager.removeEntity(id);
         m_GameState.players.erase(id);
+
+        if (m_Entities.find(id) == m_Entities.end()) {
+          SPDLOG_INFO(
+              "Tried to remove entity but its not present in m_Entites");
+        } else {
+          m_World.destroy(m_Entities.at(id));
+          m_Entities.erase(id);
+        }
 
         SPDLOG_INFO("Player with id {} has disconnected!", id);
       }));
@@ -152,16 +207,23 @@ void Client::tick(float deltaTime) {
   m_TerrainManager.tick(deltaTime);
   m_TerrainManager.render(m_Window);
 
-  m_EntityManager.tick(deltaTime);
+  Systems::ClientKeyboardMovementSystem(m_World, deltaTime);
+  Systems::PositionInterpolatorSystem(m_World, deltaTime);
+  Systems::ClientRenderSystem(m_World, m_Window);
 
-  m_EntityManager.render(m_Window);
-
-  if (m_GameState.hasPlayer(m_PlayerId)) {
+  if (m_GameState.hasPlayer(m_PlayerId) &&
+      m_Entities.find(m_PlayerId) != m_Entities.end()) {
     Entities::PlayerInfo &info = m_GameState.players.at(m_PlayerId);
+    info.pos =
+        m_World.get<Components::PositionComponent>(m_Entities.at(m_PlayerId))
+            .pos;
+
     m_Window->getCamera()->setGoal(info.pos);
 
-    m_SocketClient.send(
-        Networking::createPacket<Packets::C2S_POSITION_PACKET>(info.pos));
+    if (m_SendPosTimer.timeReached(deltaTime)) {
+      m_SocketClient.send(
+          Networking::createPacket<Packets::C2S_POSITION_PACKET>(info.pos));
+    }
   }
 
   m_Window->display();

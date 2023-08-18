@@ -121,6 +121,9 @@ void Server::stop() {
     return;
   }
 
+  m_GameState.terrain.getTerrain()->clear();
+  m_GameState.players.clear();
+
   m_SocketServer.stop();
   m_Running = false;
 

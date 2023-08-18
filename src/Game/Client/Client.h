@@ -2,10 +2,11 @@
 
 #include "../../Networking/SocketClient.h"
 #include "../../Renderer/Window.h"
-#include "../Entities/Client/ClientEntityManager.h"
+#include "../../Utils/Timers.h"
 #include "../GameObjects/TerrainManager.h"
 #include "../GameState.h"
 #include "SFML/Network/IpAddress.hpp"
+#include "entt/entity/fwd.hpp"
 #include "entt/entt.hpp"
 
 #include <atomic>
@@ -29,6 +30,8 @@ public:
 private:
   ID_t m_PlayerId = ID_t_MAX;
 
+  Utils::Timers::NonBlockingTimer<20> m_SendPosTimer;
+
   sf::IpAddress m_Ip;
   uint16_t m_Port;
 
@@ -38,7 +41,9 @@ private:
   Renderer::Window *m_Window;
 
   GameObjects::TerrainManager m_TerrainManager;
-  Entities::ClientEntityManager m_EntityManager;
+
+  entt::registry m_World;
+  std::unordered_map<ID_t, entt::entity> m_Entities;
 
   std::atomic<bool> m_Running = false;
 };
