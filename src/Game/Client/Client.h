@@ -6,6 +6,7 @@
 #include "../GameObjects/TerrainManager.h"
 #include "../GameState.h"
 #include "SFML/Network/IpAddress.hpp"
+#include "entt/entt.hpp"
 
 #include <atomic>
 #include <cstdint>

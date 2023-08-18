@@ -4,6 +4,7 @@
 #include "../../Utils/Math.h"
 #include "../../Utils/Pos.h"
 #include "../../Utils/Timers.h"
+#include "../Entities/Client/ClientNetworkPlayer.h"
 #include "../Entities/Client/ClientPlayerEntity.h"
 #include "../Packets.h"
 #include "SFML/Network/IpAddress.hpp"
@@ -64,11 +65,16 @@ void Client::start() {
               playerInfoClient = info;
 
               if (!playerExists) {
-                Entities::ClientPlayerEntity *playerEntity =
-                    m_EntityManager.addEntity(id,
-                                              new Entities::ClientPlayerEntity(
-                                                  id, &playerInfoClient));
-                SPDLOG_INFO("JESSE");
+                if (id == m_PlayerId) {
+                  Entities::ClientPlayerEntity *playerEntity =
+                      m_EntityManager.addEntity(
+                          id, new Entities::ClientPlayerEntity(
+                                  id, &playerInfoClient));
+                } else {
+                  Entities::ClientNetworkPlayer *playerEntity =
+                      m_EntityManager.addEntity(
+                          id, new Entities::ClientNetworkPlayer(id));
+                }
               }
             }
           }));
@@ -87,9 +93,16 @@ void Client::start() {
 
               if (id != m_PlayerId ||
                   Utils::distanceSquared(pos, m_GameState.players.at(id).pos) >
-                      Settings::MAX_POS_DIFFERENCE) {
-                // SPDLOG_INFO("SETTINGS POS FOR {}", id);
-                m_GameState.players.at(id).pos = pos;
+                      Settings::MAX_POS_DIFFERENCE_SQ) {
+                // SPDLOG_INFO("SETTING POS FOR {}", id);
+                Entities::ClientEntity *entity = m_EntityManager.getEntity(id);
+                if (!entity) {
+                  SPDLOG_ERROR("Received pos for player {} but the player "
+                               "entity is not registered!",
+                               id);
+                } else {
+                  entity->setPos(pos);
+                }
               }
             }
           }));

@@ -2,6 +2,7 @@
 
 #include "../Utils/Math.h"
 #include "SFML/System/Vector2.hpp"
+#include <cmath>
 
 namespace Luntik::Renderer {
 Camera::Camera(uint32_t height) : m_Height(height) {
@@ -44,8 +45,7 @@ void Camera::fixAspect(sf::Vector2u windowSize) {
 }
 
 void Camera::moveTowards(sf::Vector2f goal, float amount, float deltaTime) {
-  setCenter(
-      sf::Vector2f(Utils::lerp(getCenter().x, goal.x, amount * deltaTime),
-                   Utils::lerp(getCenter().y, goal.y, amount * deltaTime)));
+  setCenter(sf::Vector2f(std::lerp(getCenter().x, goal.x, amount * deltaTime),
+                         std::lerp(getCenter().y, goal.y, amount * deltaTime)));
 }
 } // namespace Luntik::Renderer

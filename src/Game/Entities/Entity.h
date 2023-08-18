@@ -11,7 +11,9 @@ public:
   virtual void tick(float deltaTime){};
 
   ID_t getId() const;
-  sf::Vector2f getPos() const;
+
+  virtual sf::Vector2f getPos() const { return m_Pos; };
+  virtual void setPos(const sf::Vector2f &pos) { m_Pos = pos; };
 
 protected:
   ID_t m_Id;

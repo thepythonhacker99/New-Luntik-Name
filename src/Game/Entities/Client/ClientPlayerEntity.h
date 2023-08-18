@@ -2,13 +2,13 @@
 
 #include "../PlayerInfo.h"
 #include "ClientEntity.h"
+#include "ClientHumanEntity.h"
 
 namespace Luntik::Entities {
-class ClientPlayerEntity : public ClientEntity {
+class ClientPlayerEntity : public ClientHumanEntity {
 public:
   ClientPlayerEntity(ID_t id, PlayerInfo *player);
 
-  void render(Renderer::Window *window) override;
   void tick(float deltaTime) override;
 
 private:

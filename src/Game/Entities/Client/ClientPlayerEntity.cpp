@@ -1,7 +1,7 @@
 #include "ClientPlayerEntity.h"
 
 #include "../../Textures.h"
-#include "../../settings.h"
+#include "ClientHumanEntity.h"
 #include "SFML/Graphics/Sprite.hpp"
 #include "SFML/System/Vector2.hpp"
 #include "SFML/Window/Keyboard.hpp"
@@ -9,7 +9,7 @@
 
 namespace Luntik::Entities {
 ClientPlayerEntity::ClientPlayerEntity(ID_t id, PlayerInfo *player)
-    : ClientEntity(id), m_Player(player) {}
+    : ClientHumanEntity(id), m_Player(player) {}
 
 void ClientPlayerEntity::tick(float deltaTime) {
   constexpr float speed = 10 * Settings::BLOCK_SIZE;
@@ -33,20 +33,12 @@ void ClientPlayerEntity::tick(float deltaTime) {
   }
 
   if (moveVec.x != 0 || moveVec.y != 0) {
-    m_Player->pos += moveVec.normalized() * speed * deltaTime;
+    sf::Vector2f newPos = getPos() + moveVec.normalized() * speed * deltaTime;
+
+    setPos(newPos);
+    m_Player->pos = newPos;
   }
 
-  m_Pos = m_Player->pos;
-
   // SPDLOG_INFO("{} {}", m_Pos.x, m_Pos.y);
-}
-
-void ClientPlayerEntity::render(Renderer::Window *window) {
-  sf::Sprite playerSprite(Textures::s_PlayerTexture);
-  playerSprite.setOrigin(
-      sf::Vector2f(Settings::BLOCK_SIZE_HALF, Settings::BLOCK_SIZE_HALF));
-  playerSprite.setPosition(m_Pos);
-
-  window->getInternalWindow()->draw(playerSprite);
 }
 } // namespace Luntik::Entities

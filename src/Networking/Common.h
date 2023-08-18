@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../Game/settings.h"
 #include "Overloads.h"
 #include "SFML/Network/Packet.hpp"
 

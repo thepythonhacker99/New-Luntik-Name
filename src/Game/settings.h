@@ -22,5 +22,7 @@ constexpr uint16_t CHUNK_SIZE_SQUARED = CHUNK_SIZE * CHUNK_SIZE;
 constexpr uint16_t CHUNK_SIZE_IN_PIXELS = CHUNK_SIZE * BLOCK_SIZE;
 
 constexpr int SERVER_TPS = 20;
+
 constexpr float MAX_POS_DIFFERENCE = 5.f;
+constexpr float MAX_POS_DIFFERENCE_SQ = MAX_POS_DIFFERENCE * MAX_POS_DIFFERENCE;
 } // namespace Luntik::Settings

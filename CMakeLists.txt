@@ -12,6 +12,7 @@ link_libraries(spdlog)
 
 include_directories(./libs/FastNoiseLite/)
 include_directories(./libs/random/)
+include_directories(./libs/entt/)
 
 add_executable(Luntik ${SRCS})
 
