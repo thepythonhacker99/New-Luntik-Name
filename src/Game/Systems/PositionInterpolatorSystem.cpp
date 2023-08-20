@@ -4,19 +4,20 @@
 #include "../Components/PositionInterpolatorComponent.h"
 #include "../settings.h"
 #include "SFML/Window/Keyboard.hpp"
+#include <algorithm>
 
 namespace Luntik::Systems {
 void PositionInterpolatorSystem(entt::registry &registry, float deltaTime) {
-  auto view = registry.view<Components::PositionInterpolatorComponent,
-                            Components::PositionComponent>();
-
-  for (auto entity : view) {
-    auto &positionComponent = view.get<Components::PositionComponent>(entity);
-    auto &positionInterpolatorComponent =
-        view.get<Components::PositionInterpolatorComponent>(entity);
-
-    positionInterpolatorComponent.t += deltaTime * Settings::SERVER_TPS;
-    positionComponent.pos = positionInterpolatorComponent.getPos();
-  }
+  registry
+      .view<Components::PositionInterpolatorComponent,
+            Components::PositionComponent>()
+      .each([&](auto entity,
+                Components::PositionInterpolatorComponent
+                    &positionInterpolatorComponent,
+                Components::PositionComponent &positionComponent) {
+        positionInterpolatorComponent.t +=
+            std::min(deltaTime * Settings::SERVER_TPS, 1.f);
+        positionComponent.pos = positionInterpolatorComponent.getPos();
+      });
 }
 } // namespace Luntik::Systems

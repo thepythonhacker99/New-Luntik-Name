@@ -2,13 +2,14 @@
 
 #include "Entities/PlayerInfo.h"
 #include "GameObjects/Terrain.h"
+#include "GameObjects/World.h"
 #include "SFML/System/Vector2.hpp"
 
 #include <unordered_map>
 
 namespace Luntik {
 struct GameState {
-  GameObjects::Terrain terrain;
+  GameObjects::World world;
 
   std::unordered_map<ID_t, Entities::PlayerInfo> players;
 

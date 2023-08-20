@@ -4,6 +4,7 @@
 #include "../../Renderer/Window.h"
 #include "../../Utils/Timers.h"
 #include "../GameObjects/TerrainManager.h"
+#include "../GameObjects/World.h"
 #include "../GameState.h"
 #include "SFML/Network/IpAddress.hpp"
 #include "entt/entity/fwd.hpp"
@@ -40,10 +41,9 @@ private:
   GameState m_GameState;
   Renderer::Window *m_Window;
 
-  GameObjects::TerrainManager m_TerrainManager;
+  GameObjects::World m_World;
 
-  entt::registry m_World;
-  std::unordered_map<ID_t, entt::entity> m_Entities;
+  GameObjects::TerrainManager m_TerrainManager;
 
   std::atomic<bool> m_Running = false;
 };

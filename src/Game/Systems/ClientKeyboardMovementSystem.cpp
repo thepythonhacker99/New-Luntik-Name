@@ -1,7 +1,8 @@
 #include "Systems.h"
 
+#include "../Components/AccelerationComponent.h"
 #include "../Components/KeyboardMovementComponent.h"
-#include "../Components/PositionComponent.h"
+#include "../Components/VelocityComponent.h"
 #include "../settings.h"
 #include "SFML/Window/Keyboard.hpp"
 
@@ -9,30 +10,25 @@ namespace Luntik::Systems {
 void ClientKeyboardMovementSystem(entt::registry &registry, float deltaTime) {
   constexpr float speed = 10 * Settings::BLOCK_SIZE;
 
-  auto view = registry.view<Components::KeyboardMovementComponent,
-                            Components::PositionComponent>();
+  registry
+      .view<Components::KeyboardMovementComponent,
+            Components::AccelerationComponent, Components::VelocityComponent>()
+      .each([&](auto entity, Components::KeyboardMovementComponent &,
+                Components::AccelerationComponent &accelerationComponent,
+                Components::VelocityComponent &velocityComponent) {
+        int moveDir = 0;
 
-  for (auto entity : view) {
-    auto &positionComponent = view.get<Components::PositionComponent>(entity);
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
+          moveDir += -1;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
+          moveDir += 1;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)) {
+          velocityComponent.velocity.y = -350;
+        }
 
-    sf::Vector2f moveVec;
-
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
-      moveVec.x += -1;
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
-      moveVec.x += 1;
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
-      moveVec.y += -1;
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
-      moveVec.y += 1;
-    }
-
-    if (moveVec.x != 0 || moveVec.y != 0) {
-      positionComponent.pos += moveVec.normalized() * speed * deltaTime;
-    }
-  }
+        accelerationComponent.direction.x = moveDir;
+      });
 }
 } // namespace Luntik::Systems

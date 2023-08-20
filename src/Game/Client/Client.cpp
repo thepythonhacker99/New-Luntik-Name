@@ -4,10 +4,15 @@
 #include "../../Utils/Math.h"
 #include "../../Utils/Pos.h"
 #include "../../Utils/Timers.h"
+#include "../Components/AccelerationComponent.h"
+#include "../Components/FrictionComponent.h"
+#include "../Components/GravityComponent.h"
 #include "../Components/KeyboardMovementComponent.h"
 #include "../Components/PositionComponent.h"
 #include "../Components/PositionInterpolatorComponent.h"
 #include "../Components/RenderComponent.h"
+#include "../Components/VelocityComponent.h"
+#include "../GameObjects/Entity.h"
 #include "../Packets.h"
 #include "../Systems/Systems.h"
 #include "../Textures.h"
@@ -25,7 +30,8 @@
 namespace Luntik::Client {
 Client::Client(sf::IpAddress ip, uint16_t port, Renderer::Window *window)
     : m_Window(window), m_Ip(ip), m_Port(port),
-      m_TerrainManager(&m_GameState.terrain, &m_SocketClient, m_Window),
+      m_TerrainManager(m_GameState.world.getTerrain(), &m_SocketClient,
+                       m_Window),
       m_SocketClient(ip, port) {}
 
 Client::~Client() {
@@ -72,45 +78,37 @@ void Client::start() {
 
               if (!playerExists) {
                 if (id == m_PlayerId) {
-                  entt::entity playerEntity = m_World.create();
-                  m_Entities[id] = playerEntity;
+                  GameObjects::Entity playerEntity = m_World.create();
+                  playerEntity.add<Components::UUIDComponent>(id);
 
-                  m_World.emplace<Components::KeyboardMovementComponent>(
-                      playerEntity);
+                  playerEntity.add<Components::KeyboardMovementComponent>();
 
                   auto &positionComponent =
-                      m_World.emplace<Components::PositionComponent>(
-                          playerEntity);
-
+                      playerEntity.add<Components::PositionComponent>();
                   positionComponent = info.pos;
 
+                  playerEntity.add<Components::VelocityComponent>();
+                  playerEntity.add<Components::FrictionComponent>();
+                  playerEntity.add<Components::AccelerationComponent>();
+                  playerEntity.add<Components::GravityComponent>();
+
                   auto &renderComponent =
-                      m_World.emplace<Components::RenderComponent>(
-                          playerEntity);
+                      playerEntity.add<Components::RenderComponent>();
                   renderComponent.texture = &Textures::s_PlayerTexture;
-
                 } else {
-                  // Entities::ClientNetworkPlayer *playerEntity =
-                  //     m_EntityManager.addEntity(
-                  //         id, new Entities::ClientNetworkPlayer(id));
-
-                  entt::entity playerEntity = m_World.create();
-                  m_Entities[id] = playerEntity;
+                  GameObjects::Entity playerEntity = m_World.create();
 
                   auto &positionComponent =
-                      m_World.emplace<Components::PositionComponent>(
-                          playerEntity);
+                      playerEntity.add<Components::PositionComponent>();
 
                   positionComponent = info.pos;
 
                   auto &positionInterpolatorComponent =
-                      m_World
-                          .emplace<Components::PositionInterpolatorComponent>(
-                              playerEntity);
+                      playerEntity
+                          .add<Components::PositionInterpolatorComponent>();
 
                   auto &renderComponent =
-                      m_World.emplace<Components::RenderComponent>(
-                          playerEntity);
+                      playerEntity.add<Components::RenderComponent>();
                   renderComponent.texture = &Textures::s_PlayerTexture;
                 }
               }
@@ -129,27 +127,26 @@ void Client::start() {
                 continue;
               }
 
-              if (m_Entities.find(id) == m_Entities.end()) {
+              GameObjects::Entity entity = m_World.getEntityByUUID(id);
+
+              if (!entity.isValid()) {
                 SPDLOG_ERROR(
                     "Received pos for player with id {} but the player "
                     "entity is not registered!",
                     id);
               }
 
-              entt::entity entity = m_Entities.at(id);
-
               if (id == m_PlayerId) {
                 if (Utils::distanceSquared(pos,
                                            m_GameState.players.at(id).pos) >
                     Settings::MAX_POS_DIFFERENCE_SQ) {
                   auto &positionComponent =
-                      m_World.get<Components::PositionComponent>(entity);
+                      entity.get<Components::PositionComponent>();
                   positionComponent = pos;
                 }
               } else {
                 auto &positionInterpolatorComponent =
-                    m_World.get<Components::PositionInterpolatorComponent>(
-                        entity);
+                    entity.get<Components::PositionInterpolatorComponent>();
                 positionInterpolatorComponent.setGoal(pos);
               }
             }
@@ -160,12 +157,13 @@ void Client::start() {
       std::function<void(ID_t)>([this](ID_t id) {
         m_GameState.players.erase(id);
 
-        if (m_Entities.find(id) == m_Entities.end()) {
+        GameObjects::Entity player = m_World.getEntityByUUID(id);
+
+        if (!player.isValid()) {
           SPDLOG_INFO(
               "Tried to remove entity but its not present in m_Entites");
         } else {
-          m_World.destroy(m_Entities.at(id));
-          m_Entities.erase(id);
+          m_World.destroy(player);
         }
 
         SPDLOG_INFO("Player with id {} has disconnected!", id);
@@ -208,15 +206,17 @@ void Client::tick(float deltaTime) {
   m_TerrainManager.render(m_Window);
 
   Systems::ClientKeyboardMovementSystem(m_World, deltaTime);
+  Systems::MovementSystem(m_World, deltaTime);
+  Systems::GravitySystem(m_World, deltaTime);
+
   Systems::PositionInterpolatorSystem(m_World, deltaTime);
+
   Systems::ClientRenderSystem(m_World, m_Window);
 
-  if (m_GameState.hasPlayer(m_PlayerId) &&
-      m_Entities.find(m_PlayerId) != m_Entities.end()) {
+  if (m_GameState.hasPlayer(m_PlayerId)) {
+    GameObjects::Entity player = m_World.getEntityByUUID(m_PlayerId);
     Entities::PlayerInfo &info = m_GameState.players.at(m_PlayerId);
-    info.pos =
-        m_World.get<Components::PositionComponent>(m_Entities.at(m_PlayerId))
-            .pos;
+    info.pos = player.get<Components::PositionComponent>().pos;
 
     m_Window->getCamera()->setGoal(info.pos);
 

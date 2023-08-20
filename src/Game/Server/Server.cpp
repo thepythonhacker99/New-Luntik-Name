@@ -64,18 +64,19 @@ void Server::start() {
 
   m_SocketServer.addReceiveCallback(
       Packets::C2S_CHUNK_PACKET,
-      std::function<void(ID_t, Utils::Pos)>([this](ID_t senderId,
-                                                   Utils::Pos pos) {
-        // SPDLOG_INFO("Received chunk request with pos {} {} from id {}",
-        //             pos.x, pos.y, senderId);
-        //             m_SocketServer.send(
+      std::function<void(ID_t, Utils::Pos)>(
+          [this](ID_t senderId, Utils::Pos pos) {
+            // SPDLOG_INFO("Received chunk request with pos {} {} from id {}",
+            //             pos.x, pos.y, senderId);
+            //             m_SocketServer.send(
 
-        GameObjects::Chunk *chunk = m_GameState.terrain.getChunkOrGenerate(pos);
+            GameObjects::Chunk *chunk =
+                m_GameState.world.getTerrain()->getChunkOrGenerate(pos);
 
-        m_SocketServer.send(
-            senderId,
-            Networking::createPacket<Packets::S2C_CHUNK_PACKET>(*chunk));
-      }));
+            m_SocketServer.send(
+                senderId,
+                Networking::createPacket<Packets::S2C_CHUNK_PACKET>(*chunk));
+          }));
 
   m_SocketServer.start();
   if (!m_SocketServer.isListenThreadRunning()) {
@@ -121,7 +122,7 @@ void Server::stop() {
     return;
   }
 
-  m_GameState.terrain.getTerrain()->clear();
+  m_GameState.world.getTerrain()->getTerrain()->clear();
   m_GameState.players.clear();
 
   m_SocketServer.stop();
