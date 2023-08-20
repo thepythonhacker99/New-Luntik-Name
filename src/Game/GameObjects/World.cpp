@@ -21,7 +21,6 @@ void World::onUUIDComponentCreate(entt::registry &registry,
   const auto &uuidComponent = entity.get<Components::UUIDComponent>();
 
   m_IdLookup[uuidComponent.uuid] = entityId;
-  SPDLOG_INFO("UUID COMPONENT ADDED {}", uuidComponent.uuid);
 }
 
 void World::onUUIDComponentDestroy(entt::registry &registry,
@@ -29,7 +28,6 @@ void World::onUUIDComponentDestroy(entt::registry &registry,
   Entity entity = toEntity(entityId);
   const auto &uuidComponent = entity.get<Components::UUIDComponent>();
 
-  SPDLOG_INFO("UUID COMPONENT REMOVED {}", uuidComponent.uuid);
   m_IdLookup.erase(uuidComponent.uuid);
 }
 

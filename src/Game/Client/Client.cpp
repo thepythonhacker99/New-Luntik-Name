@@ -97,6 +97,7 @@ void Client::start() {
                   renderComponent.texture = &Textures::s_PlayerTexture;
                 } else {
                   GameObjects::Entity playerEntity = m_World.create();
+                  playerEntity.add<Components::UUIDComponent>(id);
 
                   auto &positionComponent =
                       playerEntity.add<Components::PositionComponent>();
@@ -134,6 +135,7 @@ void Client::start() {
                     "Received pos for player with id {} but the player "
                     "entity is not registered!",
                     id);
+                continue;
               }
 
               if (id == m_PlayerId) {
