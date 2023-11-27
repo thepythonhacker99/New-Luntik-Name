@@ -89,6 +89,7 @@ void Server::start() {
 
 void Server::addPlayer(ID_t handleId) {
   Entities::PlayerInfo info(handleId);
+  info.pos = sf::Vector2f(150, 150);
 
   m_GameState.players.emplace(handleId, info);
 

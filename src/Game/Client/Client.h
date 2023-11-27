@@ -41,8 +41,6 @@ private:
   GameState m_GameState;
   Renderer::Window *m_Window;
 
-  GameObjects::World m_World;
-
   GameObjects::TerrainManager m_TerrainManager;
 
   std::atomic<bool> m_Running = false;

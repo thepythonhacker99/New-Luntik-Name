@@ -24,8 +24,6 @@ private:
   void requestChunksIfNotPresent();
   void updateChunkRenderCache(Utils::Pos pos);
 
-  Utils::Pos pixelToChunkPos(sf::Vector2f pixel);
-
   TileMap m_TileMap;
 
   Utils::Pos m_TopLeftChunk;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SFML/System/Vector2.hpp"
 #include <cstdint>
 #include <functional>
 #include <ostream>
@@ -11,6 +12,9 @@ struct Pos {
 
   Pos() : x(0), y(0) {}
   Pos(int x, int y) : x(x), y(y) {}
+
+  Pos(const sf::Vector2f &vec)
+      : x(static_cast<int>(vec.x)), y(static_cast<int>(vec.y)) {}
 
   Pos operator+(const int &other) const { return Pos{x + other, y + other}; }
   Pos operator-(const int &other) const { return Pos{x - other, y - other}; }

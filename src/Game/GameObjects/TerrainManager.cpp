@@ -27,13 +27,8 @@ TerrainManager::~TerrainManager() {
   m_RequestedChunks.clear();
 }
 
-Utils::Pos TerrainManager::pixelToChunkPos(sf::Vector2f pixel) {
-  return Utils::Pos(std::floor(pixel.x / Settings::CHUNK_SIZE_IN_PIXELS),
-                    std::floor(pixel.y / Settings::CHUNK_SIZE_IN_PIXELS));
-}
-
 void TerrainManager::onChunkReceive(const Chunk &chunk) {
-  m_TerrainToManage->getTerrain()->operator[](chunk.pos) = chunk;
+  m_TerrainToManage->getTerrain()->emplace(chunk.pos, chunk);
   updateChunkRenderCache(chunk.pos);
 }
 
@@ -54,13 +49,13 @@ void TerrainManager::updateChunkRenderCache(Utils::Pos pos) {
   sf::RenderTexture *texture = &m_RenderCache.at(pos);
   texture->clear(sf::Color::Transparent);
 
-  for (const auto &[blockPos, type] : chunk->blocks) {
-    if (type == BlockType::Air)
+  for (const Block &block : chunk->blocks) {
+    if (block.type == BlockType::Air)
       continue;
 
-    sf::Sprite sprite = m_TileMap.getTile(type);
-    sprite.setPosition(sf::Vector2f(blockPos.x * Settings::BLOCK_SIZE,
-                                    blockPos.y * Settings::BLOCK_SIZE));
+    sf::Sprite sprite = m_TileMap.getTile(block.type);
+    sprite.setPosition(sf::Vector2f(block.pos.x * Settings::BLOCK_SIZE,
+                                    block.pos.y * Settings::BLOCK_SIZE));
 
     texture->draw(sprite);
   }
@@ -130,10 +125,10 @@ void TerrainManager::tick(float deltaTime) {
   }
 
   Utils::Pos topLeftChunk =
-      pixelToChunkPos(m_Window->getCamera()->getTopLeft());
+      Terrain::pixelToChunkPos(m_Window->getCamera()->getTopLeft());
 
   Utils::Pos bottomRightChunk =
-      pixelToChunkPos(m_Window->getCamera()->getBottomRight());
+      Terrain::pixelToChunkPos(m_Window->getCamera()->getBottomRight());
 
   if (m_TopLeftChunk == topLeftChunk && m_BottomRightChunk == bottomRightChunk)
     return;
